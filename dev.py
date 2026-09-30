@@ -4,7 +4,7 @@
 Edit a tool in tools/*.md, refresh the browser, see it. A content error prints here
 and serves the error as text instead of a stale page.
 """
-import functools, http.server, importlib, os, sys, traceback
+import errno, functools, http.server, importlib, os, sys, traceback, urllib.request
 
 import build
 
@@ -35,8 +35,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     build.main()
     handler = functools.partial(Handler, directory=str(build.PUB))
+    try:
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), handler)
+    except OSError as e:
+        if e.errno != errno.EADDRINUSE:
+            raise
+        try:
+            page = urllib.request.urlopen(f"http://127.0.0.1:{PORT}/", timeout=2).read(2048)
+        except OSError:
+            page = b""
+        if b"Cognitive Scaffolding" in page:
+            sys.exit(f"already running: http://127.0.0.1:{PORT}")
+        sys.exit(f"port {PORT} is taken by something else. try: SCAFFOLD_PORT={PORT + 1} ./dev.py")
     print(f"http://127.0.0.1:{PORT}")
     try:
-        http.server.ThreadingHTTPServer(("127.0.0.1", PORT), handler).serve_forever()
+        server.serve_forever()
     except KeyboardInterrupt:
         sys.exit(0)
