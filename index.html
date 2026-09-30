@@ -46,6 +46,7 @@
     --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
   }
+  /* light:start — build.py --site drops this block; paramv.com is dark-only */
   @media (prefers-color-scheme: light) {
     :root {
       color-scheme: light;
@@ -61,6 +62,7 @@
       --tint: rgba(22, 23, 26, 0.035); /* must match --fg */
     }
   }
+  /* light:end */
 
   html {
     -webkit-text-size-adjust: 100%;
@@ -165,6 +167,14 @@
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0.4rem 1.5rem;
+  }
+  .crumb {
+    font-size: 1rem;
+    color: var(--dim);
+    text-decoration: none;
+  }
+  .crumb:hover {
+    color: var(--fg);
   }
   .mark {
     margin-right: auto;
@@ -1195,8 +1205,12 @@
     .top-in {
       padding-inline: 1rem;
     }
+    /* row one: (crumb) + mark; row two: views + fence clock */
     .mark {
-      width: 100%;
+      flex: 1 0 60%;
+    }
+    .clock {
+      margin-left: auto;
     }
     .start,
     .book-head,
@@ -1237,6 +1251,7 @@
 
 <header class="top">
   <div class="top-in">
+    <!--SITE-NAV-->
     <a class="mark" href="#run">Cognitive Scaffolding</a>
     <nav aria-label="Views">
       <a href="#run" data-view="run">Run</a>

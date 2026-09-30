@@ -7,8 +7,11 @@ then <style>, markup, <script>, and no doctype/html/head/body. This wraps it in 
 document, inlines the toolbox (about.md, families.md, tools/*.md, lenses/*.md) as JSON,
 and copies the fonts. public/ is generated. Never edit it by hand.
 
-    ./build.py           build
-    ./build.py --check   parse and validate the content, write nothing
+    ./build.py                      build public/
+    ./build.py --check              parse and validate the content, write nothing
+    ./build.py --site ~/personal/site
+                                    also write the paramv.com fragment there, as
+                                    cognitive-scaffolding.html (served at /systems/cognitive-scaffolding)
 """
 import html, json, pathlib, re, shutil, sys
 
@@ -100,6 +103,11 @@ def load() -> dict:
     return {"about": about, "families": families, "tools": tools, "lenses": lenses}
 
 
+def payload(data: dict) -> str:
+    # </ inside JSON would close the script tag early
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+
+
 def wrap(fragment: str, data: dict) -> str:
     m = re.match(r"^<title>(.*?)</title>\s*", fragment, flags=re.S)
     if not m:
@@ -109,9 +117,7 @@ def wrap(fragment: str, data: dict) -> str:
     body = fragment[m.end():]
     styles = "\n".join(re.findall(r"<style>.*?</style>", body, flags=re.S))
     body = re.sub(r"<style>.*?</style>\s*", "", body, flags=re.S)
-    # </ inside JSON would close the script tag early
-    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    body = body.replace(PLACEHOLDER, payload)
+    body = body.replace(PLACEHOLDER, payload(data))
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -130,6 +136,47 @@ def wrap(fragment: str, data: dict) -> str:
 """
 
 
+SITE_PAGE = "cognitive-scaffolding.html"
+SITE_NOTE = """<!--
+  paramv.com/systems/cognitive-scaffolding. GENERATED, do not edit here.
+  source: ~/personal/tools/apps/cognitive-scaffolding (github.com/pvcomms/cognitive-scaffolding)
+  rebuild: cd there && ./build.py --site ~/personal/site
+  the load-gate block is copied from systems.html at build time, so it stays identical.
+-->
+"""
+GATE_TOP = re.compile(
+    r'<style>\s*/\* gate .*?</style>\s*<script>\s*try \{ if \(!sessionStorage\.getItem\("pv-gate"\)\).*?</script>'
+    r'\s*<div class="gate" id="gate".*?</altcha-widget>.*?</div>\s*</div>',
+    flags=re.S,
+)
+GATE_BOTTOM = re.compile(
+    r'<script src="/vendor/altcha/altcha-obfuscation\.min\.js" defer></script>\s*'
+    r'<script src="/vendor/altcha/altcha\.min\.js" defer></script>\s*<script>\s*/\* gate: .*?</script>',
+    flags=re.S,
+)
+
+
+def site_fragment(fragment: str, data: dict, systems_html: str) -> str:
+    """The same page as a paramv.com fragment: absolute font paths, dark only, the site's
+    load gate, a way back to /systems, and the toolbox inlined. paramv.com's build.py wraps it."""
+    top, bottom = GATE_TOP.search(systems_html), GATE_BOTTOM.search(systems_html)
+    if not (top and bottom):
+        raise ValueError("systems.html: couldn't find the load-gate block to copy")
+    m = re.match(r"^<title>.*?</title>\n", fragment)
+    if not m:
+        raise ValueError("index.html: line 1 must be the <title>")
+    out = fragment[: m.end()] + SITE_NOTE + fragment[m.end():]
+    out, n = re.subn(r"\s*/\* light:start.*?/\* light:end \*/", "", out, count=1, flags=re.S)
+    if not n:
+        raise ValueError("index.html: no light:start/light:end block to drop")
+    out = out.replace('url("fonts/', 'url("/fonts/')
+    out = out.replace("<!--SITE-NAV-->", '<a class="crumb" href="/systems">← systems</a>')
+    first_style_end = out.index("</style>") + len("</style>")
+    out = out[:first_style_end] + "\n" + top.group(0) + out[first_style_end:]
+    out = out.replace(PLACEHOLDER, payload(data))
+    return out.rstrip() + "\n" + bottom.group(0) + "\n"
+
+
 def main() -> int:
     data = load()
     print(f"{len(data['tools'])} tools in {len(data['families'])} families, {len(data['lenses'])} lenses")
@@ -142,6 +189,11 @@ def main() -> int:
     (PUB / "index.html").write_text(wrap(fragment, data))
     shutil.copytree(ROOT / "fonts", PUB / "fonts", dirs_exist_ok=True)
     print(f"wrote {PUB / 'index.html'}")
+    if "--site" in sys.argv:
+        site = pathlib.Path(sys.argv[sys.argv.index("--site") + 1]).expanduser()
+        systems = (site / "systems.html").read_text(encoding="utf-8")
+        (site / SITE_PAGE).write_text(site_fragment(fragment, data, systems), encoding="utf-8")
+        print(f"wrote {site / SITE_PAGE}")
     return 0
 
 

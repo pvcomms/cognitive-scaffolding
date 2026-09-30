@@ -91,6 +91,49 @@ class Page(unittest.TestCase):
         for src in re.findall(r'(?:src|href)="(https?://[^"]+)"', page):
             self.assertTrue(src.startswith("https://doi.org/"), src)
 
+    SYSTEMS = """<title>Systems</title>
+<style>a{}</style>
+<style>
+  /* gate — fixture */
+  .gate { display: none; }
+</style>
+<script>
+  try { if (!sessionStorage.getItem("pv-gate")) document.documentElement.classList.add("gated"); } catch (e) {}
+</script>
+<div class="gate" id="gate" aria-live="polite">
+  <div class="gate-inner">
+    <altcha-widget id="gate-altcha"></altcha-widget>
+  </div>
+</div>
+<p>page</p>
+<script src="/vendor/altcha/altcha-obfuscation.min.js" defer></script>
+<script src="/vendor/altcha/altcha.min.js" defer></script>
+<script>
+  /* gate: open on verified */
+  (function () {})();
+</script>
+"""
+
+    def test_site_fragment(self):
+        page = (ROOT / "index.html").read_text()
+        out = build.site_fragment(page, build.load(), self.SYSTEMS)
+        self.assertTrue(out.startswith("<title>Cognitive Scaffolding</title>\n<!--"))
+        self.assertIsNone(re.search(r"<(!doctype|html|head|body)\b", out, flags=re.I))
+        self.assertNotIn('url("fonts/', out)
+        self.assertIn('url("/fonts/', out)
+        self.assertNotIn("prefers-color-scheme", out)
+        self.assertIn('<a class="crumb" href="/systems">', out)
+        first = out.index("</style>") + len("</style>")
+        self.assertTrue(out[first:].lstrip().startswith("<style>\n  /* gate"))
+        self.assertTrue(out.rstrip().endswith("</script>"))
+        self.assertIn('id="gate"', out)
+        self.assertIn("/vendor/altcha/altcha.min.js", out)
+        self.assertNotIn(build.PLACEHOLDER, out)
+
+    def test_site_fragment_refuses_without_the_gate(self):
+        with self.assertRaises(ValueError):
+            build.site_fragment((ROOT / "index.html").read_text(), build.load(), "<title>x</title>")
+
     def test_build_writes_public(self):
         with tempfile.TemporaryDirectory() as tmp:
             build.PUB = pathlib.Path(tmp) / "public"

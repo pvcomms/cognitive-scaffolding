@@ -38,6 +38,14 @@ build enforces that every tool cites something.
 1984 AER lecture, which Crossref doesn't index. Its title was confirmed through the 2007
 reprint.
 
+## 2026-09-30 — Hosted on paramv.com, generated from here
+
+Param: "host it on paramv.com /systems". The page is served at /systems/cognitive-scaffolding
+as a generated fragment in the site repo (`./build.py --site`), not as a separate deploy, so
+there's one domain and one gate. This repo stays the source of truth, and the site copy is
+never hand-edited. The first-person `about.md` went public as written. Visitors get their own
+per-browser ledger, and nothing is collected.
+
 ## 2026-09-30 — No dependencies
 
 Nothing here needs one. The stdlib covers the build, the dev server, the tests and the

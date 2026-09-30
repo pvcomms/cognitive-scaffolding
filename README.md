@@ -28,6 +28,7 @@ Python 3.10 or later, standard library only. A browser.
 ./build.py           # → public/index.html, which also opens straight from disk
 python3 -m unittest  # the proof: content parses, every tool is cited, the page builds
 ./check_sources.py   # every DOI citation against Crossref (network)
+./build.py --site ~/personal/site   # also regenerate the paramv.com page (then build + deploy the site)
 ```
 
 ## How it works
@@ -65,4 +66,4 @@ The build fails if a tool has no grounding or names a family that doesn't exist.
 
 ## Part of the constellation
 
-A personal tool, built because it's useful. It's not the Center's output, though it will be linked from paramv.com's `/systems`, which already names it. It keeps the constellation rules: local by default, flat files, no dependencies, and the tool never decides. The run demands an intervention but never writes one, and the sparring brief forbids a model from writing it too. `docs/TEMPLATE.md` says what is Param's and what is the scaffold.
+A personal tool, built because it's useful. It's not the Center's output. It's hosted publicly at [paramv.com/systems/cognitive-scaffolding](https://paramv.com/systems/cognitive-scaffolding), linked from `/systems`. Every visitor's ledger stays in their own browser. It keeps the constellation rules: local by default, flat files, no dependencies, and the tool never decides. The run demands an intervention but never writes one, and the sparring brief forbids a model from writing it too. `docs/TEMPLATE.md` says what is Param's and what is the scaffold.

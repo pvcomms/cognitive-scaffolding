@@ -16,6 +16,7 @@ python3 -m unittest  # the proof — content parses, every tool cited, page buil
 ./build.py           # → public/index.html + public/fonts/
 ./build.py --check   # parse and validate the markdown only
 ./check_sources.py   # DOI citations against Crossref; run when a citation changes
+./build.py --site ~/personal/site  # writes ~/personal/site/cognitive-scaffolding.html
 ```
 
 The page's behaviour (the run, the fence, the ledger) has no JS test harness. Verify it in a
@@ -42,6 +43,16 @@ keep them identical so the page can move onto paramv.com unchanged.
   the ledger is read back. A shape change needs a version bump and a migration in `load()`, or
   every existing ledger is orphaned.
 - No colours in JS. State is CSS classes; tokens live in `:root`.
+
+## Publishing to paramv.com
+
+The page is **live and public** at paramv.com/systems/cognitive-scaffolding. `--site` writes the
+fragment the site's `build.py` wraps: absolute `/fonts/`, the `light:start…light:end` block
+dropped (the site is dark-only), `<!--SITE-NAV-->` replaced by "← systems", and the site's load
+gate copied out of `systems.html`. Shipping a change means running `./build.py --site ~/personal/site`,
+then in `~/personal/site` running `./build.py`, committing `cognitive-scaffolding.html`, and deploying
+per that repo's AGENTS.md. Content changes go public on deploy. Private push stays default-OK, but a
+redeploy of paramv.com is a public act.
 
 ## Traps
 

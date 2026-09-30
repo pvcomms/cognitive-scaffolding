@@ -36,7 +36,7 @@ model he uses.
 
 ## Out of scope
 
-Linking from paramv.com (002). Syncing the ledger across devices. Reminders or notifications
+Hosting on paramv.com (002). Syncing the ledger across devices. Reminders or notifications
 for pending interventions, since there are no sounds and no nagging. Suggesting interventions.
 Scoring runs.
 
