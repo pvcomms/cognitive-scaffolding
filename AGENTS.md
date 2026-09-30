@@ -78,8 +78,8 @@ redeploy of paramv.com is a public act.
 | **Role** | tool · personal |
 | **Local** | `~/personal/tools/apps/cognitive-scaffolding` |
 | **GitHub** | [pvcomms/cognitive-scaffolding](https://github.com/pvcomms/cognitive-scaffolding) |
-| **Live** | — not deployed |
-| **Surface** | local-only :5656 — paramv.com /systems link is 002, needs Param's go |
+| **Live** | https://paramv.com/systems/cognitive-scaffolding |
+| **Surface** | public page at paramv.com/systems/cognitive-scaffolding (generated into ~/personal/site by ./build.py --site); repo private; local :5656 |
 
 Tools for structured overthinking: a fenced run that ends in an intervention, a cited toolbox, and a ledger of what got done.
 
