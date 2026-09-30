@@ -1,0 +1,2301 @@
+<title>Cognitive Scaffolding</title>
+<style>
+  @font-face {
+    font-family: "IBM Plex Mono";
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url("fonts/plexmono-latin-300.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "IBM Plex Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/plexmono-latin-400.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Newsreader";
+    font-style: italic;
+    font-weight: 300 500;
+    font-display: swap;
+    src: url("fonts/newsreader-latin-italic.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Newsreader";
+    font-style: normal;
+    font-weight: 300 500;
+    font-display: swap;
+    src: url("fonts/newsreader-latin.woff2") format("woff2");
+  }
+
+  /* dark is the default, same ground as paramv.com; light follows the system */
+  :root {
+    color-scheme: dark;
+    --bg: #0b0c0e;
+    --fg: #e9e6de;
+    --soft: #cdc9bf;
+    --dim: #a19c8a;
+    --faint: #847f6f;
+    --hair: #222326;
+    --edge: #3a3b3e;
+    --accent: #e3c567;
+    --wash: rgba(227, 197, 103, 0.1); /* --accent at 10%, must match --accent */
+    --tint: rgba(233, 230, 222, 0.035); /* --fg at 3.5%, must match --fg */
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --bg: #efece4;
+      --fg: #16171a;
+      --soft: #2e2f33;
+      --dim: #5b584e;
+      --faint: #6c6859;
+      --hair: #dcd8cc;
+      --edge: #bdb8aa;
+      --accent: #7a5c0c;
+      --wash: rgba(122, 92, 12, 0.09); /* must match --accent */
+      --tint: rgba(22, 23, 26, 0.035); /* must match --fg */
+    }
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 6rem;
+  }
+  body {
+    color-scheme: inherit;
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--serif);
+    font-size: 1.125rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 400;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h1 {
+    font-size: clamp(2.25rem, 3.5vw + 1rem, 3.4rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  h2 {
+    font-size: clamp(1.75rem, 2vw + 1rem, 2.35rem);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+  }
+  p {
+    margin: 0 0 1rem;
+    text-wrap: pretty;
+  }
+  a {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--edge);
+    text-underline-offset: 3px;
+    transition:
+      text-decoration-color 0.2s var(--ease),
+      color 0.2s var(--ease);
+  }
+  a:hover {
+    text-decoration-color: var(--accent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .lbl,
+  .kicker {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .kicker {
+    margin-bottom: 0.9rem;
+  }
+  .lede {
+    font-size: 1.2rem;
+    color: var(--soft);
+    margin-top: 1.1rem;
+  }
+  .wrap {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding-inline: 1.5rem;
+  }
+  .narrow > * {
+    max-width: 42rem;
+  }
+
+  /* header */
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--hair);
+  }
+  .top-in {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1.5rem;
+  }
+  .mark {
+    margin-right: auto;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+  .top nav {
+    display: flex;
+    gap: 1.25rem;
+  }
+  .top nav a {
+    position: relative;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 1rem;
+  }
+  .top nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.35s var(--ease);
+  }
+  .top nav a:hover,
+  .top nav a[aria-current="page"] {
+    color: var(--fg);
+  }
+  .top nav a[aria-current="page"]::after {
+    transform: scaleX(1);
+  }
+  .clock {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    min-width: 5ch;
+    text-align: right;
+  }
+  .clock.up {
+    color: var(--accent);
+  }
+  .fence-line {
+    height: 1px;
+    margin-bottom: -1px;
+    position: relative;
+  }
+  .fence-line i {
+    display: block;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1s linear;
+  }
+
+  /* fields */
+  fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .field {
+    margin-top: 2rem;
+  }
+  .field > label,
+  .field > legend {
+    display: block;
+    font-size: 1rem;
+    color: var(--dim);
+    margin-bottom: 0.4rem;
+    padding: 0;
+  }
+  input[type="text"],
+  textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 1.15rem;
+    color: var(--fg);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--edge);
+    border-radius: 0;
+    padding: 0.45rem 0;
+    transition:
+      border-color 0.2s var(--ease),
+      box-shadow 0.2s var(--ease);
+  }
+  textarea {
+    resize: vertical;
+    line-height: 1.45;
+  }
+  input[type="text"]::placeholder,
+  textarea::placeholder {
+    color: var(--faint);
+    font-style: italic;
+    opacity: 1;
+  }
+  input[type="text"]:hover,
+  textarea:hover {
+    border-bottom-color: var(--faint);
+  }
+  input[type="text"]:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    border-bottom-color: var(--accent);
+    box-shadow: 0 1px 0 0 var(--accent);
+  }
+  textarea.big {
+    font-size: 1.45rem;
+    line-height: 1.35;
+    resize: none;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chip {
+    position: relative;
+    display: inline-flex;
+  }
+  .chip input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .chip span {
+    padding: 0.28rem 0.8rem;
+    border: 1px solid var(--edge);
+    border-radius: 2px;
+    font-size: 1rem;
+    color: var(--dim);
+    transition:
+      border-color 0.2s var(--ease),
+      color 0.2s var(--ease),
+      background-color 0.2s var(--ease);
+  }
+  .chip:hover span {
+    color: var(--fg);
+    border-color: var(--faint);
+  }
+  .chip input:checked + span {
+    color: var(--fg);
+    border-color: var(--accent);
+    background: var(--wash);
+  }
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .check {
+    display: inline-flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    color: var(--soft);
+    cursor: pointer;
+  }
+  .check input {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+  .sure {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .sure input {
+    flex: 1;
+    accent-color: var(--accent);
+  }
+  .sure output {
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 1.6rem;
+    min-width: 3ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .was {
+    font-size: 0.9rem;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+  .hint {
+    font-size: 0.95rem;
+    color: var(--dim);
+    margin: 0.6rem 0 0;
+  }
+  .hint.warn {
+    color: var(--accent);
+  }
+
+  /* buttons */
+  .btn {
+    display: inline-block;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.3;
+    padding: 0.6rem 1.15rem;
+    border-radius: 3px;
+    border: 1px solid var(--fg);
+    background: var(--fg);
+    color: var(--bg);
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform 0.25s var(--ease),
+      opacity 0.2s var(--ease),
+      border-color 0.2s var(--ease);
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn.ghost {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--edge);
+  }
+  .btn.ghost:hover {
+    border-color: var(--faint);
+  }
+  .btn.small {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.92rem;
+  }
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .linkish {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--dim);
+    text-decoration: underline;
+    text-decoration-color: var(--edge);
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition:
+      color 0.2s var(--ease),
+      text-decoration-color 0.2s var(--ease);
+  }
+  .linkish:hover {
+    color: var(--fg);
+    text-decoration-color: var(--accent);
+  }
+  .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: center;
+    margin-top: 3rem;
+  }
+  .nav-row .spacer {
+    flex: 1;
+  }
+  .status {
+    font-size: 0.95rem;
+    color: var(--dim);
+  }
+
+  /* reveal */
+  .rv {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .rv.in {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s var(--ease) var(--d, 0ms),
+      transform 0.6s var(--ease) var(--d, 0ms);
+  }
+  .still .rv {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rv {
+      opacity: 1;
+      transform: none;
+    }
+    .rv.in,
+    .fence-line i {
+      transition: none;
+    }
+  }
+
+  /* start */
+  .start {
+    padding-block: 4.5rem 6rem;
+  }
+  .waiting {
+    margin-bottom: 4rem;
+  }
+  .waiting .small {
+    color: var(--dim);
+    font-size: 1rem;
+  }
+  .pending {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    border-top: 1px solid var(--hair);
+  }
+  .pend {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.2rem 1.5rem;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .pend .it {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+  .pend .meta {
+    grid-column: 1;
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--dim);
+  }
+  .acts {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pend .acts {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .overdue {
+    color: var(--accent);
+  }
+
+  /* the run */
+  .run {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 42rem);
+    gap: 0 3.5rem;
+    padding-block: 3.5rem 6rem;
+  }
+  .rail-wrap {
+    position: sticky;
+    top: 5.5rem;
+    align-self: start;
+  }
+  .rail {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--hair);
+  }
+  .rail button {
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    width: 100%;
+    margin-left: -1px;
+    padding: 0.42rem 0 0.42rem 1rem;
+    background: none;
+    border: 0;
+    border-left: 1px solid transparent;
+    font: inherit;
+    font-size: 1rem;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--faint);
+    cursor: pointer;
+    transition:
+      color 0.2s var(--ease),
+      border-color 0.3s var(--ease);
+  }
+  .rail .n {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+  }
+  .rail button.past {
+    color: var(--dim);
+  }
+  .rail button:hover {
+    color: var(--fg);
+  }
+  .rail button[aria-current="step"] {
+    color: var(--fg);
+    border-left-color: var(--accent);
+  }
+  .rail button[aria-current="step"] .n {
+    color: var(--accent);
+  }
+  .rail-foot {
+    margin-top: 2rem;
+    padding-left: 1rem;
+    font-size: 0.92rem;
+    color: var(--dim);
+  }
+  .rail-foot p {
+    margin-bottom: 0.4rem;
+  }
+  .rail-foot .acts {
+    gap: 0.75rem;
+  }
+  .loopline {
+    margin: 0 0 2.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--hair);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--soft);
+  }
+  .loopline .lbl {
+    font-style: normal;
+    margin-bottom: 0.2rem;
+  }
+  .fence-up {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1rem;
+    margin: 0 0 2.25rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--accent);
+    border-radius: 2px;
+    background: var(--wash);
+  }
+  .ground {
+    margin-top: 2.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--hair);
+    font-size: 0.95rem;
+    color: var(--dim);
+  }
+  .ground p {
+    margin-bottom: 0.5rem;
+  }
+  .src {
+    font-size: 0.86rem;
+    color: var(--faint);
+  }
+  .picked {
+    display: grid;
+    gap: 2.25rem;
+    margin: 2.25rem 0 2.75rem;
+  }
+  .pt {
+    padding-left: 1.25rem;
+    border-left: 2px solid var(--accent);
+  }
+  .pt-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1rem;
+  }
+  .pt-head .lbl {
+    width: 100%;
+  }
+  .pt-head h3 {
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
+  }
+  .pt-move {
+    color: var(--soft);
+    margin: 0.4rem 0 1.1rem;
+  }
+  .pt label {
+    display: block;
+    font-size: 1rem;
+    color: var(--dim);
+    margin-bottom: 0.3rem;
+  }
+  .pt .more {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.92rem;
+    color: var(--dim);
+  }
+  .filters {
+    margin-top: 2rem;
+  }
+  .rowlist {
+    list-style: none;
+    padding: 0;
+    margin: 1.25rem 0 0;
+    border-top: 1px solid var(--hair);
+  }
+  .tool-row,
+  .lens-row {
+    position: relative;
+    display: grid;
+    gap: 0.1rem 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.85rem 0.5rem 0.85rem 1.1rem;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--hair);
+    font: inherit;
+    color: var(--fg);
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background-color 0.25s var(--ease),
+      opacity 0.2s var(--ease);
+  }
+  .tool-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .tool-row::before,
+  .lens-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.9rem;
+    bottom: 0.9rem;
+    width: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.35s var(--ease);
+  }
+  .tool-row[aria-pressed="true"]::before,
+  .lens-row:has(input:checked)::before {
+    transform: scaleY(1);
+  }
+  .tool-row:hover:not(:disabled),
+  .lens-row:hover {
+    background: var(--tint);
+  }
+  .tool-row:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+  .tn,
+  .ln {
+    font-size: 1.1rem;
+  }
+  .tw,
+  .lq {
+    grid-column: 1;
+    font-size: 0.97rem;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+  .tf {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: baseline;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .lens-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lens-row input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .lens-row:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .lens-open {
+    padding: 0.75rem 0 1.5rem 1.1rem;
+    border-bottom: 1px solid var(--hair);
+  }
+  .guard {
+    color: var(--soft);
+    font-size: 1rem;
+  }
+  .lens-open label {
+    display: block;
+    color: var(--dim);
+    font-size: 1rem;
+    margin-top: 1rem;
+  }
+  .spar {
+    margin-top: 3.25rem;
+    padding: 1.5rem 1.5rem 1.75rem;
+    border: 1px solid var(--edge);
+    border-radius: 3px;
+  }
+  .spar h3 {
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
+  }
+  .spar p {
+    color: var(--soft);
+    font-size: 1.02rem;
+  }
+  .spar textarea[readonly] {
+    margin-top: 1rem;
+    height: 13rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    border: 1px solid var(--edge);
+    padding: 0.75rem;
+  }
+  .ifthen .field:first-child {
+    margin-top: 1.5rem;
+  }
+  .recap {
+    margin-top: 2.75rem;
+    padding: 1.25rem 0;
+    border-block: 1px solid var(--hair);
+  }
+  .it {
+    font-size: 1.3rem;
+    line-height: 1.4;
+    margin: 0.3rem 0;
+  }
+  .recap .meta {
+    color: var(--dim);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+  .logged {
+    padding-block: 5rem 6rem;
+  }
+  .logged h1 {
+    margin-bottom: 1.5rem;
+  }
+  .logged .it {
+    padding-left: 1rem;
+    border-left: 2px solid var(--accent);
+    margin-bottom: 1.5rem;
+  }
+  .num {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.92em;
+  }
+
+  /* toolbox */
+  .book-head {
+    padding-block: 4.5rem 2.5rem;
+    max-width: 42rem;
+  }
+  .dek {
+    font-size: 1.4rem;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--soft);
+    margin: 0.9rem 0 2.25rem;
+  }
+  .book-head > p:not(.dek):not(.rule) {
+    color: var(--soft);
+  }
+  .rule {
+    margin-top: 2.25rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--accent);
+    font-size: 1.35rem;
+    line-height: 1.4;
+  }
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    padding-bottom: 2.5rem;
+    font-size: 0.98rem;
+  }
+  .toc a {
+    color: var(--dim);
+    text-decoration: none;
+  }
+  .toc a:hover {
+    color: var(--fg);
+  }
+  .toc .num {
+    color: var(--faint);
+    margin-right: 0.4rem;
+    font-size: 0.72rem;
+  }
+  .family {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: 0 3rem;
+    padding-block: 3.25rem;
+    border-top: 1px solid var(--hair);
+  }
+  .fam-head {
+    position: sticky;
+    top: 5.5rem;
+    align-self: start;
+  }
+  .fam-head .num {
+    color: var(--accent);
+    font-size: 0.75rem;
+  }
+  .fam-head h2 {
+    font-size: 1.6rem;
+    margin: 0.2rem 0 0.6rem;
+  }
+  .fam-head p {
+    color: var(--dim);
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+  .tool {
+    border-bottom: 1px solid var(--hair);
+  }
+  .tool:first-child {
+    border-top: 1px solid var(--hair);
+  }
+  .tool summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1rem;
+    gap: 0.15rem 1rem;
+    padding: 1.05rem 0;
+    list-style: none;
+    cursor: pointer;
+  }
+  .tool summary::-webkit-details-marker {
+    display: none;
+  }
+  .tool summary .tn {
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+    transition: color 0.2s var(--ease);
+  }
+  .tool summary:hover .tn {
+    color: var(--accent);
+  }
+  .pm {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    width: 0.8rem;
+    height: 0.8rem;
+    align-self: center;
+  }
+  .pm::before,
+  .pm::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--dim);
+    transition: transform 0.35s var(--ease);
+  }
+  .pm::after {
+    transform: rotate(90deg);
+  }
+  .tool[open] .pm::after {
+    transform: rotate(0deg);
+  }
+  .tool-body {
+    padding: 0.25rem 0 2rem;
+    max-width: 38rem;
+  }
+  .tool-body .move {
+    font-size: 1.15rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--accent);
+    margin-bottom: 1.4rem;
+  }
+  .tool-body .move .lbl,
+  .tool-body .ask .lbl {
+    margin-bottom: 0.2rem;
+  }
+  .tool-body > p {
+    color: var(--soft);
+  }
+  .tool-body .ask {
+    margin-top: 1.4rem;
+    color: var(--fg);
+    font-style: italic;
+  }
+  .tool-body .ask .lbl {
+    font-style: normal;
+  }
+  .sources {
+    margin: 1.25rem 0 0;
+    padding: 0 0 0 1.1rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--dim);
+  }
+  .sources li {
+    margin-bottom: 0.35rem;
+  }
+  .lens-item {
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .lens-item:first-child {
+    border-top: 1px solid var(--hair);
+  }
+  .lens-item h3 {
+    font-size: 1.25rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.3rem;
+  }
+  .lens-item p {
+    margin: 0 0 0.4rem;
+    color: var(--soft);
+  }
+  .lens-item .guard {
+    color: var(--dim);
+    font-size: 0.97rem;
+  }
+  .steps {
+    list-style: none;
+    counter-reset: s;
+    padding: 0;
+    margin: 0;
+  }
+  .steps li {
+    counter-increment: s;
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--hair);
+    color: var(--soft);
+  }
+  .steps li:first-child {
+    border-top: 1px solid var(--hair);
+  }
+  .steps li::before {
+    content: counter(s, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    padding-top: 0.35rem;
+  }
+  .steps b {
+    font-weight: 400;
+    color: var(--fg);
+  }
+  .steps .src {
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  /* ledger */
+  .ledger {
+    padding-block: 4.5rem 6rem;
+  }
+  .ledger > header {
+    max-width: 42rem;
+  }
+  .tally {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    gap: 1.25rem 2rem;
+    margin: 2.5rem 0 3.5rem;
+    padding: 1.4rem 0;
+    border-block: 1px solid var(--hair);
+  }
+  .tally dt {
+    font-size: 0.92rem;
+    color: var(--dim);
+  }
+  .tally dd {
+    margin: 0;
+    font-family: var(--mono);
+    font-weight: 300;
+    font-size: 1.7rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .tally .done dd {
+    color: var(--accent);
+  }
+  .ledger h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.25rem;
+  }
+  .ledger section {
+    margin-bottom: 3.5rem;
+  }
+  .entries {
+    border-top: 1px solid var(--hair);
+    margin-top: 1rem;
+  }
+  .entry {
+    border-bottom: 1px solid var(--hair);
+  }
+  .entry summary {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+    gap: 0.2rem 1.25rem;
+    align-items: baseline;
+    padding: 0.85rem 0;
+    list-style: none;
+    cursor: pointer;
+    transition: background-color 0.25s var(--ease);
+  }
+  .entry summary::-webkit-details-marker {
+    display: none;
+  }
+  .entry summary:hover {
+    background: var(--tint);
+  }
+  .entry .date {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--faint);
+    padding-left: 0.25rem;
+  }
+  .entry .loop {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .entry[open] .loop {
+    white-space: normal;
+  }
+  .st {
+    font-size: 0.9rem;
+    padding-right: 0.25rem;
+  }
+  .st-pending {
+    color: var(--accent);
+  }
+  .st-done {
+    color: var(--fg);
+  }
+  .st-dropped {
+    color: var(--faint);
+    text-decoration: line-through;
+  }
+  .entry-body {
+    padding: 0.25rem 0 1.5rem 7rem;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: 0.45rem 1.5rem;
+    margin: 0.5rem 0 1.25rem;
+    font-size: 1rem;
+  }
+  .kv dt {
+    color: var(--dim);
+  }
+  .kv dd {
+    margin: 0;
+  }
+  .io {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--hair);
+  }
+  .io p {
+    color: var(--dim);
+    font-size: 0.98rem;
+  }
+  .empty {
+    color: var(--soft);
+  }
+
+  @media (max-width: 760px) {
+    .run {
+      grid-template-columns: minmax(0, 1fr);
+      padding-top: 1.25rem;
+    }
+    .rail-wrap {
+      position: static;
+      margin-bottom: 2rem;
+    }
+    .rail {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      border-left: 0;
+      border-bottom: 1px solid var(--hair);
+    }
+    .rail button {
+      margin: 0 0 -1px;
+      padding: 0.5rem 0.7rem 0.6rem;
+      border-left: 0;
+      border-bottom: 1px solid transparent;
+    }
+    .rail button[aria-current="step"] {
+      border-bottom-color: var(--accent);
+    }
+    .rail button:not([aria-current]) .l {
+      display: none;
+    }
+    .rail-foot {
+      margin-top: 0.75rem;
+      padding-left: 0;
+    }
+    .family {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fam-head {
+      position: static;
+      margin-bottom: 1.25rem;
+    }
+    .entry-body {
+      padding-left: 0;
+    }
+  }
+  @media (max-width: 560px) {
+    .wrap,
+    .top-in {
+      padding-inline: 1rem;
+    }
+    .mark {
+      width: 100%;
+    }
+    .start,
+    .book-head,
+    .ledger,
+    .logged {
+      padding-top: 2.5rem;
+    }
+    .pend {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pend .acts {
+      grid-column: 1;
+      grid-row: auto;
+      margin-top: 0.5rem;
+    }
+    .kv {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.1rem;
+    }
+    .kv dd {
+      margin-bottom: 0.6rem;
+    }
+    .entry summary {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .entry .date {
+      grid-column: 1 / -1;
+      padding-left: 0;
+    }
+    .spar {
+      padding: 1.25rem 1rem;
+    }
+    .sure {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <a class="mark" href="#run">Cognitive Scaffolding</a>
+    <nav aria-label="Views">
+      <a href="#run" data-view="run">Run</a>
+      <a href="#toolbox" data-view="toolbox">Toolbox</a>
+      <a href="#ledger" data-view="ledger">Ledger</a>
+    </nav>
+    <a class="clock" id="clock" href="#run" hidden></a>
+  </div>
+  <div class="fence-line" aria-hidden="true"><i id="fenceFill"></i></div>
+</header>
+<main id="app"></main>
+
+<script type="application/json" id="data">
+  /*DATA*/
+</script>
+<script>
+  (() => {
+    "use strict";
+    const D = JSON.parse(document.getElementById("data").textContent);
+    const TOOLS = Object.fromEntries(D.tools.map((t) => [t.id, t]));
+    const LENSES = Object.fromEntries(D.lenses.map((l) => [l.id, l]));
+    const FAMS = Object.fromEntries(D.families.map((f) => [f.id, f]));
+    const KEY = "cognitive-scaffolding.v1";
+    const MAX_TOOLS = 3;
+    const FENCES = [10, 15, 25];
+    const STATES = [
+      "hungry",
+      "tired",
+      "wired",
+      "lonely",
+      "anxious",
+      "angry",
+      "overstimulated",
+      "fine",
+    ];
+    const TOWARD = [
+      ["person", "another person"],
+      ["body", "the body"],
+      ["world", "the world off the screen"],
+    ];
+    const BY = [
+      ["today", "today"],
+      ["tomorrow", "tomorrow"],
+      ["week", "this week"],
+    ];
+    const STEPS = [
+      { id: "body", label: "Body" },
+      { id: "how", label: "Why → how" },
+      { id: "tools", label: "Tools" },
+      { id: "lens", label: "Lens" },
+      { id: "act", label: "Intervene" },
+      { id: "close", label: "Close" },
+    ];
+    const WATKINS =
+      "Watkins, E. R. (2008). Constructive and unconstructive repetitive thought. <em>Psychological Bulletin</em>, 134(2), 163–206. <a href='https://doi.org/10.1037/0033-2909.134.2.163' rel='noopener'>doi:10.1037/0033-2909.134.2.163</a>";
+    const WATKINS_TRIAL =
+      "Watkins, E. R., Taylor, R. S., Byng, R., Baeyens, C., Read, R., Pearson, K., &amp; Watson, L. (2012). Guided self-help concreteness training as an intervention for major depression in primary care: A Phase II randomized controlled trial. <em>Psychological Medicine</em>, 42(7), 1359–1371. <a href='https://doi.org/10.1017/S0033291711002480' rel='noopener'>doi:10.1017/S0033291711002480</a>";
+
+    const app = document.getElementById("app");
+    const clock = document.getElementById("clock");
+    const fill = document.getElementById("fenceFill");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let store = load();
+    const ui = {
+      filter: "all",
+      logged: null,
+      confirm: null,
+      open: new Set(),
+      lastKey: "",
+    };
+
+    // ---------- storage
+
+    function load() {
+      try {
+        const s = JSON.parse(localStorage.getItem(KEY));
+        if (s && s.v === 1 && Array.isArray(s.runs)) return s;
+      } catch {}
+      return { v: 1, runs: [], current: null };
+    }
+    let saveTimer;
+    function save(now) {
+      clearTimeout(saveTimer);
+      const write = () => {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(store));
+        } catch {}
+      };
+      if (now) write();
+      else saveTimer = setTimeout(write, 250);
+    }
+    addEventListener("pagehide", () => save(true));
+
+    function newRun(loop, fence) {
+      return {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        started: new Date().toISOString(),
+        fence,
+        loop,
+        step: 0,
+        fenceHit: false,
+        body: { moved: false, states: [], belief: "", sure: 70 },
+        why: "",
+        how: "",
+        tools: [],
+        lens: null,
+        spar: "",
+        act: {
+          when: "",
+          will: "",
+          toward: [],
+          by: "tomorrow",
+          obstacle: "",
+          ifObstacle: "",
+        },
+        sureAfter: null,
+        note: "",
+        ended: null,
+        status: null,
+        resolved: null,
+      };
+    }
+    function normalize(r) {
+      const d = newRun("", 15);
+      const out = {
+        ...d,
+        ...r,
+        body: { ...d.body, ...(r.body || {}) },
+        act: { ...d.act, ...(r.act || {}) },
+      };
+      if (!Array.isArray(out.body.states)) out.body.states = [];
+      if (!Array.isArray(out.act.toward)) out.act.toward = [];
+      if (!Array.isArray(out.tools)) out.tools = [];
+      return out;
+    }
+
+    // ---------- helpers
+
+    const esc = (s) =>
+      String(s ?? "").replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c],
+      );
+    const plain = (h) => {
+      const d = document.createElement("div");
+      d.innerHTML = h;
+      return d.textContent;
+    };
+    const pad = (n) => String(n).padStart(2, "0");
+    // "The argument" → "Argument", for filter chips
+    const short = (name) => {
+      const s = name.replace(/^The /, "");
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    };
+    const getPath = (o, p) =>
+      p.split(".").reduce((x, k) => (x == null ? x : x[k]), o);
+    function setPath(o, p, v) {
+      const ks = p.split(".");
+      const last = ks.pop();
+      const target = ks.reduce(
+        (x, k) => (x[k] == null ? (x[k] = {}) : x[k]),
+        o,
+      );
+      target[last] = v;
+    }
+    const actReady = (r) =>
+      !!(r.act.when.trim() && r.act.will.trim() && r.act.toward.length);
+    const byLabel = (v) => (BY.find((b) => b[0] === v) || BY[1])[1];
+    const towardLabel = (vs) =>
+      vs.map((v) => (TOWARD.find((t) => t[0] === v) || [v, v])[1]).join(", ");
+    const ifThen = (r) => `When ${esc(r.act.when)}, I will ${esc(r.act.will)}.`;
+    function fmtDate(iso) {
+      const d = new Date(iso);
+      const o = { day: "numeric", month: "short" };
+      if (d.getFullYear() !== new Date().getFullYear()) o.year = "numeric";
+      return d.toLocaleDateString("en-GB", o);
+    }
+    function ago(iso) {
+      const a = new Date(iso);
+      const b = new Date();
+      a.setHours(0, 0, 0, 0);
+      b.setHours(0, 0, 0, 0);
+      const n = Math.round((b - a) / 864e5);
+      return n <= 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`;
+    }
+    function deadline(r) {
+      const d = new Date(r.ended);
+      d.setHours(23, 59, 59, 999);
+      if (r.act.by === "tomorrow") d.setDate(d.getDate() + 1);
+      if (r.act.by === "week") d.setDate(d.getDate() + 7);
+      return d;
+    }
+    function median(xs) {
+      if (!xs.length) return null;
+      const s = [...xs].sort((a, b) => a - b);
+      const m = s.length >> 1;
+      return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+    }
+    const chip = (type, name, value, label, checked, data) =>
+      `<label class="chip"><input type="${type}" name="${name}" value="${esc(value)}" ${data} ${checked ? "checked" : ""}><span>${label}</span></label>`;
+
+    // ---------- views
+
+    function view() {
+      return location.hash.slice(1).split("/")[0] || "run";
+    }
+
+    function render() {
+      const v = view();
+      document.querySelectorAll(".top nav a").forEach((a) => {
+        if (a.dataset.view === v) a.setAttribute("aria-current", "page");
+        else a.removeAttribute("aria-current");
+      });
+      if (v === "toolbox") app.innerHTML = viewToolbox();
+      else if (v === "ledger") app.innerHTML = viewLedger();
+      else app.innerHTML = viewRun();
+      const key = [
+        v,
+        store.current ? store.current.step : "start",
+        ui.logged ? "logged" : "",
+      ].join(":");
+      const fresh = key !== ui.lastKey;
+      ui.lastKey = key;
+      app.classList.toggle("still", !fresh);
+      if (fresh) reveal();
+      tick();
+      refreshGates();
+      if (v === "toolbox") {
+        const id = location.hash.split("/")[1];
+        const d = id && document.getElementById("tool-" + id);
+        if (d) {
+          d.open = true;
+          d.scrollIntoView({ block: "start" });
+          // the jump moved new blocks into view before the observer could see them
+          app.querySelectorAll(".rv:not(.in)").forEach((e) => {
+            const b = e.getBoundingClientRect();
+            if (b.top < innerHeight && b.bottom > 0) e.classList.add("in");
+          });
+        }
+      }
+    }
+
+    function reveal() {
+      const els = [...app.querySelectorAll(".rv")];
+      if (reduce || !("IntersectionObserver" in window)) {
+        els.forEach((e) => e.classList.add("in"));
+        return;
+      }
+      const io = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((en) => {
+            if (en.isIntersecting) {
+              en.target.classList.add("in");
+              io.unobserve(en.target);
+            }
+          }),
+        { rootMargin: "0px 0px -6% 0px" },
+      );
+      // what's already on screen reveals now; IntersectionObserver only for the rest,
+      // so a throttled observer (background tab) can never leave the view blank
+      let n = 0;
+      els.forEach((e) => {
+        if (e.getBoundingClientRect().top < innerHeight) {
+          // the rect read above already laid it out at opacity 0, so this transitions
+          e.style.setProperty("--d", `${Math.min(n++, 5) * 70}ms`);
+          e.classList.add("in");
+        } else io.observe(e);
+      });
+    }
+
+    // ----- run
+
+    function viewRun() {
+      const r = store.current;
+      if (!r) return ui.logged ? viewLogged() : viewStart();
+      const s = r.step;
+      const rail = STEPS.map(
+        (st, i) =>
+          `<li><button type="button" data-act="step" data-n="${i}" class="${i < s ? "past" : ""}" ${
+            i === s ? 'aria-current="step"' : ""
+          }><span class="n">${pad(i + 1)}</span><span class="l">${st.label}</span></button></li>`,
+      ).join("");
+      const foot =
+        ui.confirm === "discard"
+          ? `<p>Discard this run? Nothing gets logged.</p><div class="acts"><button type="button" class="linkish" data-act="confirm-discard">Discard</button><button type="button" class="linkish" data-act="cancel">Keep going</button></div>`
+          : `<button type="button" class="linkish" data-act="discard">Discard this run</button>`;
+      return `<div class="wrap run">
+        <aside class="rail-wrap"><nav aria-label="Steps"><ol class="rail">${rail}</ol></nav><div class="rail-foot">${foot}</div></aside>
+        <section class="step rv">
+          <p class="loopline"><span class="lbl">The loop</span>${esc(r.loop)}</p>
+          <div id="fenceSlot">${fenceBanner(r)}</div>
+          ${STEP_VIEWS[STEPS[s].id](r)}
+        </section>
+      </div>`;
+    }
+
+    function fenceBanner(r) {
+      if (!r.fenceHit || r.step >= 4) return "";
+      return `<p class="fence-up" role="status"><span>The fence is up. Whatever state the thinking is in, go and write the intervention.</span><button type="button" class="linkish" data-act="step" data-n="4">Go to Intervene</button></p>`;
+    }
+
+    function navRow(r) {
+      const s = r.step;
+      const id = STEPS[s].id;
+      const back =
+        s > 0
+          ? `<button type="button" class="btn ghost" data-act="go" data-d="-1">Back</button>`
+          : "";
+      const skip =
+        id === "lens"
+          ? `<button type="button" class="linkish" data-act="lens-skip">Skip the lens</button>`
+          : "";
+      const gate = id === "act" ? " data-gate" : "";
+      return `<div class="nav-row">${back}<span class="spacer"></span>${skip}<button type="button" class="btn" data-act="go" data-d="1"${gate}>Next: ${STEPS[s + 1].label}</button></div>`;
+    }
+
+    const input = (id, bind, value, placeholder, extra = "") =>
+      `<input type="text" id="${id}" data-bind="${bind}" value="${esc(value)}" placeholder="${esc(placeholder)}" maxlength="240" autocomplete="off" ${extra}>`;
+
+    const STEP_VIEWS = {
+      body: (r) => `
+        <p class="kicker">01 · Body</p>
+        <h2>Divorce the belief from the body</h2>
+        <p class="lede">Before any thinking, one physical move. Stand up, drink some water, look at something far away, breathe out for longer than you breathe in.</p>
+        <label class="check"><input type="checkbox" data-bool="body.moved" ${r.body.moved ? "checked" : ""}> Done that</label>
+        <fieldset class="field"><legend>What is the body doing?</legend><div class="chips">${STATES.map(
+          (x) =>
+            chip(
+              "checkbox",
+              "states",
+              x,
+              x,
+              r.body.states.includes(x),
+              'data-toggle="body.states"',
+            ),
+        ).join("")}</div></fieldset>
+        <div class="field"><label for="belief">The belief under the loop</label>${input(
+          "belief",
+          "body.belief",
+          r.body.belief,
+          "e.g. if I go, I'll be flat and everyone will notice",
+        )}</div>
+        <div class="field"><label for="sure">How sure are you of it?</label><div class="sure"><input type="range" id="sure" min="0" max="100" step="5" data-bind="body.sure" value="${Number(
+          r.body.sure,
+        )}"><output for="sure">${Number(r.body.sure)}</output></div></div>
+        <aside class="ground"><p>Once you name what's causing a feeling, it stops passing itself off as evidence about something else. <a href="#toolbox/belief-body">Divorce the belief from the body</a></p></aside>
+        ${navRow(r)}`,
+
+      how: (r) => `
+        <p class="kicker">02 · Why → how</p>
+        <h2>Turn the why into a how</h2>
+        <p class="lede">Rumination asks why: why am I like this, why did they, why does it always. Abstract why-questions about yourself don't end. Concrete how-questions do. How did it unfold, step by step? How could the next one go?</p>
+        <div class="field"><label for="why">The why you've been asking</label>${input("why", "why", r.why, "e.g. why do I disappear after a good week?")}</div>
+        <div class="field"><label for="how">The same thing, as a how</label>${input(
+          "how",
+          "how",
+          r.how,
+          "e.g. how did friday go from the call to the closed laptop, step by step?",
+        )}</div>
+        <aside class="ground"><p>Repetitive thought helps when it's concrete and specific, and hurts when it's abstract and evaluative. Training people to think concretely reduced depression in a randomised trial.</p><p class="src">${WATKINS}</p><p class="src">${WATKINS_TRIAL}</p></aside>
+        ${navRow(r)}`,
+
+      tools: (r) => {
+        const picked = r.tools
+          .map((p, i) => {
+            const t = TOOLS[p.id];
+            if (!t) return "";
+            return `<div class="pt">
+              <div class="pt-head"><span class="lbl">${FAMS[t.family].name}</span><h3>${t.name}</h3><button type="button" class="linkish" data-act="pick" data-id="${t.id}">remove</button></div>
+              <p class="pt-move">${t.move}</p>
+              <label for="t-${t.id}">${t.ask}</label>${input("t-" + t.id, `tools.${i}.answer`, p.answer, "one line")}
+              <a class="more" href="#toolbox/${t.id}">Why this works</a>
+            </div>`;
+          })
+          .join("");
+        const full = r.tools.length >= MAX_TOOLS;
+        const filters = [
+          ["all", "All"],
+          ...D.families.map((f) => [f.id, short(f.name)]),
+        ]
+          .map(([v, l]) => chip("radio", "filter", v, l, ui.filter === v, ""))
+          .join("");
+        const rows = D.tools
+          .filter((t) => ui.filter === "all" || t.family === ui.filter)
+          .map((t) => {
+            const on = r.tools.some((p) => p.id === t.id);
+            return `<li><button type="button" class="tool-row" data-act="pick" data-id="${t.id}" aria-pressed="${on}" ${
+              full && !on ? "disabled" : ""
+            }><span class="tn">${t.name}</span>${
+              ui.filter === "all"
+                ? `<span class="tf">${short(FAMS[t.family].name)}</span>`
+                : ""
+            }<span class="tw">${t.when}</span></button></li>`;
+          })
+          .join("");
+        return `
+          <p class="kicker">03 · Tools</p>
+          <h2>Pick up to three tools</h2>
+          <p class="lede">Choose the ones whose <em>when</em> sounds like right now. One line each. The boxes are small on purpose.</p>
+          ${picked ? `<div class="picked">${picked}</div>` : ""}
+          <fieldset class="filters"><legend class="sr">Show tools from</legend><div class="chips">${filters}</div></fieldset>
+          <ul class="rowlist">${rows}</ul>
+          ${full ? `<p class="hint">That's three. Remove one to swap it.</p>` : ""}
+          ${navRow(r)}`;
+      },
+
+      lens: (r) => {
+        const rows = D.lenses
+          .map((l) => {
+            const on = r.lens && r.lens.id === l.id;
+            return `<li><label class="lens-row"><input type="radio" name="lens" value="${l.id}" ${on ? "checked" : ""}><span class="ln">${
+              l.name
+            }</span><span class="lq">${l.question}</span></label>${
+              on
+                ? `<div class="lens-open"><p class="guard"><span class="lbl">Guard</span>${l.guard}</p><label for="lens-a">One line through this lens</label>${input(
+                    "lens-a",
+                    "lens.answer",
+                    r.lens.answer,
+                    "one line",
+                  )}</div>`
+                : ""
+            }</li>`;
+          })
+          .join("");
+        return `
+          <p class="kicker">04 · Lens</p>
+          <h2>One lens, if the loop wants a big frame</h2>
+          <p class="lede">This is where the overthinking gets its structure. Give the loop one lens and one line. Each lens has a guard, which marks the point where the lens turns back into the loop. You can skip this step.</p>
+          <ul class="rowlist">${rows}</ul>
+          <div class="spar">
+            <h3>A second mind, on your terms</h3>
+            <p>Copy a brief for a model. It tells the model to ask one question at a time, to offer no reassurance and no verdict, and to leave the intervention to you. Come back with one line.</p>
+            <div class="acts"><button type="button" class="btn ghost small" data-act="copy-brief">Copy the sparring brief</button><span class="status" id="copyStatus" role="status"></span></div>
+            <label class="sr" for="briefFallback">Sparring brief</label><textarea id="briefFallback" readonly hidden></textarea>
+            <div class="field"><label for="spar">What came out of it, in one line</label>${input("spar", "spar", r.spar, "optional")}</div>
+          </div>
+          ${navRow(r)}`;
+      },
+
+      act: (r) => `
+        <p class="kicker">05 · Intervene</p>
+        <h2>A conclusion is not an intervention</h2>
+        <p class="lede">One thing you'll do. Tie it to a cue so the situation does the remembering.</p>
+        <div class="ifthen">
+          <div class="field"><label for="when">When</label>${input("when", "act.when", r.act.when, "e.g. tomorrow, after the 10:00 call", "data-recheck")}</div>
+          <div class="field"><label for="will">I will</label>${input(
+            "will",
+            "act.will",
+            r.act.will,
+            "e.g. text one person and ask if they're free for a walk this week",
+            "data-recheck",
+          )}</div>
+        </div>
+        <fieldset class="field"><legend>It moves toward</legend><div class="chips">${TOWARD.map(
+          ([v, l]) =>
+            chip(
+              "checkbox",
+              "toward",
+              v,
+              l,
+              r.act.toward.includes(v),
+              'data-toggle="act.toward"',
+            ),
+        ).join(
+          "",
+        )}</div><p class="hint" id="towardHint">Withdrawal is the loop's default direction. Tick at least one.</p></fieldset>
+        <fieldset class="field"><legend>By</legend><div class="chips">${BY.map(
+          ([v, l]) =>
+            chip("radio", "by", v, l, r.act.by === v, 'data-radio="act.by"'),
+        ).join("")}</div></fieldset>
+        <div class="field"><label for="obstacle">What inside you is most likely to stop it?</label>${input(
+          "obstacle",
+          "act.obstacle",
+          r.act.obstacle,
+          "e.g. I'll decide I'm too tired and it can wait",
+        )}</div>
+        <div class="field"><label for="ifob">If that happens, I will</label>${input(
+          "ifob",
+          "act.ifObstacle",
+          r.act.ifObstacle,
+          "e.g. send it before I sit down, tired or not",
+        )}</div>
+        <aside class="ground"><p>Across 94 studies, tying an action to a cue had a medium-to-large effect on actually doing it. Picturing the obstacle is what turns imagining into effort. <a href="#toolbox/if-then">If-then</a> · <a href="#toolbox/mental-contrasting">Creative visualisation, done properly</a></p></aside>
+        ${navRow(r)}`,
+
+      close: (r) => {
+        const after = r.sureAfter ?? r.body.sure;
+        return `
+        <p class="kicker">06 · Close</p>
+        <h2>Re-rate, then log it</h2>
+        <div class="field"><label for="sure2">How sure are you now ${
+          r.body.belief
+            ? `that “${esc(r.body.belief)}”`
+            : "of the belief under the loop"
+        }?</label><div class="sure"><input type="range" id="sure2" min="0" max="100" step="5" data-bind="sureAfter" value="${Number(
+          after,
+        )}"><output for="sure2">${Number(after)}</output><span class="was">was ${Number(r.body.sure)}</span></div></div>
+        <div class="field"><label for="note">Anything worth keeping</label><textarea id="note" rows="2" maxlength="500" data-bind="note" placeholder="optional">${esc(
+          r.note,
+        )}</textarea></div>
+        <div class="recap"><span class="lbl">The intervention</span>${
+          actReady(r)
+            ? `<p class="it">${ifThen(r)}</p><p class="meta">by ${byLabel(r.act.by)} · toward ${towardLabel(r.act.toward)}</p>`
+            : `<p class="it">Not written yet.</p><button type="button" class="linkish" data-act="step" data-n="4">Write it</button>`
+        }</div>
+        <div class="nav-row"><button type="button" class="btn ghost" data-act="go" data-d="-1">Back</button><span class="spacer"></span><button type="button" class="btn" data-act="log" data-gate>Log the run</button></div>
+        <aside class="ground"><p>The run goes into the ledger as pending. It counts once you've done it. <a href="#toolbox/evidence-of-a-type">Evidence of a type</a></p></aside>`;
+      },
+    };
+
+    function viewStart() {
+      const pending = store.runs.filter((r) => r.status === "pending");
+      const waiting = pending.length
+        ? `<section class="waiting rv"><p class="kicker">Waiting on you</p><p class="small">An intervention you've already written beats a new run.</p><ul class="pending">${pending
+            .map(pendRow)
+            .join("")}</ul></section>`
+        : "";
+      return `<div class="wrap narrow start">
+        ${waiting}
+        <section class="rv">
+          <h1>Going round on something?</h1>
+          <p class="lede">Name it in one line. You get a fence, a fixed stretch of time, to work it through with the tools. When the fence is up, the run asks for one intervention: a thing you'll do, with a when, that moves toward a person, your body or the world off the screen. A conclusion doesn't count.</p>
+          <form id="startForm" autocomplete="off">
+            <div class="field"><label for="loopInput">The loop, in one line</label><textarea id="loopInput" class="big" rows="2" maxlength="200" placeholder="e.g. whether to go to thursday's dinner or stay in and finish the essay"></textarea></div>
+            <fieldset class="field"><legend>Fence</legend><div class="chips">${FENCES.map(
+              (m) => chip("radio", "fence", m, `${m} min`, m === 15, ""),
+            ).join("")}</div></fieldset>
+            <div class="nav-row"><button class="btn" type="submit" id="startBtn" disabled>Start the fence</button></div>
+          </form>
+        </section>
+      </div>`;
+    }
+
+    function pendRow(r) {
+      const late = deadline(r) < new Date();
+      return `<li class="pend"><p class="it">${ifThen(r)}</p><p class="meta">${
+        late
+          ? `<span class="overdue">past ${byLabel(r.act.by)}</span>`
+          : `by ${byLabel(r.act.by)}`
+      } · written ${ago(r.ended)}</p><div class="acts"><button type="button" class="btn small" data-act="done" data-id="${
+        r.id
+      }">Done</button><button type="button" class="linkish" data-act="drop" data-id="${r.id}">Drop</button></div></li>`;
+    }
+
+    function viewLogged() {
+      const r = store.runs.find((x) => x.id === ui.logged);
+      const done = store.runs.filter((x) => x.status === "done").length;
+      return `<div class="wrap narrow logged"><section class="rv">
+        <p class="kicker">Logged</p>
+        <h1>It's pending until you do it.</h1>
+        ${r ? `<p class="it">${ifThen(r)}</p>` : ""}
+        <p>When it's done, mark it on the ledger. Interventions done so far: <span class="num">${done}</span>.</p>
+        <div class="nav-row"><a class="btn" href="#ledger">See the ledger</a><button type="button" class="btn ghost" data-act="dismiss-logged">Done for now</button></div>
+      </section></div>`;
+    }
+
+    // ----- toolbox
+
+    function viewToolbox() {
+      const a = D.about;
+      const toc = D.families
+        .map(
+          (f, i) =>
+            `<a href="#toolbox" data-jump="fam-${f.id}"><span class="num">${pad(i + 1)}</span>${f.name}</a>`,
+        )
+        .concat([
+          `<a href="#toolbox" data-jump="fam-lenses"><span class="num">L</span>Lenses</a>`,
+          `<a href="#toolbox" data-jump="fam-run"><span class="num">R</span>The run</a>`,
+        ])
+        .join("");
+      const fams = D.families
+        .map((f, i) => {
+          const tools = D.tools
+            .filter((t) => t.family === f.id)
+            .map(
+              (t) => `<details class="tool" id="tool-${t.id}">
+                <summary><span class="tn">${t.name}</span><span class="pm" aria-hidden="true"></span><span class="tw">${t.when}</span></summary>
+                <div class="tool-body">
+                  <p class="move"><span class="lbl">The move</span>${t.move}</p>
+                  ${t.body.map((p) => `<p>${p}</p>`).join("")}
+                  <p class="ask"><span class="lbl">In a run, you answer</span>${t.ask}</p>
+                  <ol class="sources">${t.grounding.map((g) => `<li>${g}</li>`).join("")}</ol>
+                </div>
+              </details>`,
+            )
+            .join("");
+          return `<section class="family rv" id="fam-${f.id}"><div class="fam-head"><span class="num">${pad(i + 1)}</span><h2>${
+            f.name
+          }</h2><p>${f.line}</p></div><div>${tools}</div></section>`;
+        })
+        .join("");
+      const lenses = D.lenses
+        .map(
+          (l) =>
+            `<div class="lens-item"><h3>${l.name}</h3><p>${l.question}</p><p class="guard"><span class="lbl">Guard</span>${l.guard}</p></div>`,
+        )
+        .join("");
+      return `<div class="wrap">
+        <header class="book-head rv">
+          <h1>${a.title}</h1>
+          <p class="dek">${a.line}</p>
+          ${a.body.map((p) => `<p>${p}</p>`).join("")}
+          <p class="rule">${a.rule}</p>
+        </header>
+        <nav class="toc rv" aria-label="Sections">${toc}</nav>
+        ${fams}
+        <section class="family rv" id="fam-lenses"><div class="fam-head"><span class="num">L</span><h2>Lenses</h2><p>Structured overthinking. Each lens is one question, and each has a guard for the moment it turns back into the loop.</p></div><div>${lenses}</div></section>
+        <section class="family rv" id="fam-run"><div class="fam-head"><span class="num">R</span><h2>The run</h2><p>Six steps inside a fence. The fence is set before you start and doesn't move.</p></div>
+          <ol class="steps">
+            <li><div><b>Body.</b> One physical move first. Name the body's state, write the belief under the loop, and rate how sure you are.</div></li>
+            <li><div><b>Why → how.</b> Rewrite the abstract why as a concrete how.<span class="src">${WATKINS}</span></div></li>
+            <li><div><b>Tools.</b> Up to three from the toolbox, one line each.</div></li>
+            <li><div><b>Lens.</b> Optional. One lens and one line, held to its guard. If you like, spar with a model on the brief's terms.</div></li>
+            <li><div><b>Intervene.</b> When this happens, I will do that. It moves toward a person, the body or the world, it has a deadline, and it names the inner obstacle along with the plan for it.</div></li>
+            <li><div><b>Close.</b> Re-rate the belief and log the run. It stays pending until it's done.</div></li>
+          </ol>
+        </section>
+      </div>`;
+    }
+
+    // ----- ledger
+
+    function viewLedger() {
+      const runs = store.runs;
+      const head = `<header class="rv"><h1>Ledger</h1><p class="lede">Every run, and whether its intervention happened. Each one you've done is a vote for the type.</p></header>`;
+      const io = `<section class="io rv"><p>This is kept in this browser only. Export a copy now and then.</p><div class="acts"><button type="button" class="btn ghost small" data-act="export">Export JSON</button><button type="button" class="btn ghost small" data-act="import">Import JSON</button><span class="status" id="ioStatus" role="status"></span></div><input type="file" id="importFile" accept="application/json,.json" hidden></section>`;
+      if (!runs.length)
+        return `<div class="wrap ledger">${head}<section class="rv"><p class="empty">Nothing logged yet. The first run starts on the <a href="#run">Run</a> page.</p></section>${io}</div>`;
+      const count = (s) => runs.filter((r) => r.status === s).length;
+      const person = runs.filter(
+        (r) => r.status === "done" && r.act.toward.includes("person"),
+      ).length;
+      const rated = runs.filter((r) => r.sureAfter != null);
+      const mb = median(rated.map((r) => Number(r.body.sure)));
+      const ma = median(rated.map((r) => Number(r.sureAfter)));
+      const tally = `<dl class="tally rv">
+        <div><dt>runs</dt><dd>${runs.length}</dd></div>
+        <div class="done"><dt>done</dt><dd>${count("done")}</dd></div>
+        <div><dt>pending</dt><dd>${count("pending")}</dd></div>
+        <div><dt>dropped</dt><dd>${count("dropped")}</dd></div>
+        <div><dt>done, toward a person</dt><dd>${person}</dd></div>
+        <div><dt>certainty, median</dt><dd>${mb == null ? "–" : `${mb}→${ma}`}</dd></div>
+      </dl>`;
+      const pending = runs.filter((r) => r.status === "pending");
+      const waiting = pending.length
+        ? `<section class="rv"><h2>Waiting on you</h2><ul class="pending">${pending.map(pendRow).join("")}</ul></section>`
+        : "";
+      const entries = runs.map(entry).join("");
+      return `<div class="wrap ledger">${head}${tally}${waiting}<section class="rv"><h2>Every run</h2><div class="entries">${entries}</div></section>${io}</div>`;
+    }
+
+    function entry(r) {
+      const kv = [];
+      const add = (k, v) => v && kv.push(`<dt>${k}</dt><dd>${v}</dd>`);
+      add(
+        "Belief",
+        r.body.belief &&
+          `${esc(r.body.belief)} <span class="num">${Number(r.body.sure)}→${Number(r.sureAfter ?? r.body.sure)}</span>`,
+      );
+      add(
+        "Body",
+        [r.body.states.map(esc).join(", "), r.body.moved ? "moved first" : ""]
+          .filter(Boolean)
+          .join(" · "),
+      );
+      add("Why", esc(r.why));
+      add("How", esc(r.how));
+      r.tools.forEach((p) =>
+        add(TOOLS[p.id] ? TOOLS[p.id].name : esc(p.id), esc(p.answer) || "–"),
+      );
+      if (r.lens)
+        add(
+          LENSES[r.lens.id] ? LENSES[r.lens.id].name : esc(r.lens.id),
+          esc(r.lens.answer) || "–",
+        );
+      add("Sparring", esc(r.spar));
+      add(
+        "If-then",
+        `${ifThen(r)} <span class="src">by ${byLabel(r.act.by)} · toward ${esc(towardLabel(r.act.toward))}</span>`,
+      );
+      add(
+        "Obstacle",
+        r.act.obstacle &&
+          `${esc(r.act.obstacle)}${r.act.ifObstacle ? ` → ${esc(r.act.ifObstacle)}` : ""}`,
+      );
+      add("Note", esc(r.note));
+      add("Fence", `${Number(r.fence)} min${r.fenceHit ? ", hit" : ""}`);
+      const status =
+        r.status === "pending"
+          ? `<button type="button" class="btn small" data-act="done" data-id="${r.id}">Done</button><button type="button" class="linkish" data-act="drop" data-id="${r.id}">Drop</button>`
+          : `<span class="src">${r.status} ${r.resolved ? fmtDate(r.resolved) : ""}</span><button type="button" class="linkish" data-act="undo" data-id="${r.id}">Mark pending again</button>`;
+      const del =
+        ui.confirm === "del:" + r.id
+          ? `<span class="src">Delete this run for good?</span><button type="button" class="linkish" data-act="confirm-del" data-id="${r.id}">Delete</button><button type="button" class="linkish" data-act="cancel">Keep it</button>`
+          : `<button type="button" class="linkish" data-act="del" data-id="${r.id}">Delete</button>`;
+      return `<details class="entry" data-id="${r.id}" ${ui.open.has(r.id) ? "open" : ""}>
+        <summary><span class="date">${fmtDate(r.ended)}</span><span class="loop">${esc(r.loop)}</span><span class="st st-${esc(r.status)}">${esc(
+          r.status,
+        )}</span></summary>
+        <div class="entry-body"><dl class="kv">${kv.join("")}</dl><div class="acts">${status}<span class="spacer"></span>${del}</div></div>
+      </details>`;
+    }
+
+    // ---------- fence
+
+    function tick() {
+      const r = store.current;
+      if (!r) {
+        clock.hidden = true;
+        fill.style.transform = "scaleX(0)";
+        return;
+      }
+      const total = r.fence * 60000;
+      const elapsed = Date.now() - Date.parse(r.started);
+      const left = Math.max(0, total - elapsed);
+      clock.hidden = false;
+      fill.style.transform = `scaleX(${Math.min(1, elapsed / total).toFixed(4)})`;
+      if (left > 0) {
+        const s = Math.ceil(left / 1000);
+        clock.textContent = `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+        clock.classList.remove("up");
+        clock.setAttribute(
+          "aria-label",
+          `Fence: ${Math.ceil(s / 60)} minutes left`,
+        );
+      } else {
+        clock.textContent = "fence up";
+        clock.classList.add("up");
+        clock.setAttribute("aria-label", "The fence is up");
+        if (!r.fenceHit) {
+          r.fenceHit = true;
+          save(true);
+          const slot = document.getElementById("fenceSlot");
+          if (slot) slot.innerHTML = fenceBanner(r);
+        }
+      }
+    }
+    setInterval(tick, 1000);
+
+    function refreshGates() {
+      const r = store.current;
+      if (!r) return;
+      const ok = actReady(r);
+      app.querySelectorAll("[data-gate]").forEach((b) => (b.disabled = !ok));
+      const h = document.getElementById("towardHint");
+      if (h)
+        h.classList.toggle(
+          "warn",
+          !r.act.toward.length && !!(r.act.when.trim() || r.act.will.trim()),
+        );
+    }
+
+    // ---------- actions
+
+    function setStep(n) {
+      const r = store.current;
+      r.step = Math.max(0, Math.min(STEPS.length - 1, n));
+      if (STEPS[r.step].id === "close" && r.sureAfter == null)
+        r.sureAfter = r.body.sure;
+      ui.confirm = null;
+      save(true);
+      render();
+      scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    }
+
+    function resolve(id, status) {
+      const r = store.runs.find((x) => x.id === id);
+      if (!r) return;
+      r.status = status;
+      r.resolved = status === "pending" ? null : new Date().toISOString();
+      save(true);
+      render();
+    }
+
+    function brief(r) {
+      const L = [
+        "I'm using you as a sparring partner, not an advisor. I've been going round on this:",
+        "",
+        `"${r.loop}"`,
+        "",
+      ];
+      if (r.body.belief)
+        L.push(
+          `The belief underneath it: "${r.body.belief}" (I'm ${r.body.sure}% sure.)`,
+        );
+      if (r.body.states.length)
+        L.push(`My body right now: ${r.body.states.join(", ")}.`);
+      if (r.why) L.push(`The why I keep asking: "${r.why}"`);
+      if (r.how) L.push(`The same thing as a how: "${r.how}"`);
+      r.tools.forEach(
+        (p) =>
+          TOOLS[p.id] &&
+          p.answer &&
+          L.push(`${plain(TOOLS[p.id].name)}: ${p.answer}`),
+      );
+      if (r.lens && LENSES[r.lens.id] && r.lens.answer)
+        L.push(
+          `Through the lens of ${plain(LENSES[r.lens.id].name).toLowerCase()}: ${r.lens.answer}`,
+        );
+      L.push(
+        "",
+        "Rules for you:",
+        "- Ask me one question at a time, then wait for my answer.",
+        "- No reassurance and no verdict. Don't tell me whether the belief is true.",
+        "- If my reasoning skips a step, attacks a source instead of a claim, or turns a pattern into a type of person, point at it in one sentence.",
+        "- After five questions at most, stop and ask me what I will do, when, and toward whom or what. Don't suggest it. The intervention has to be mine.",
+      );
+      return L.join("\n");
+    }
+
+    async function copyBrief() {
+      const text = brief(store.current);
+      const status = document.getElementById("copyStatus");
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = "Copied. Paste it into a model.";
+      } catch {
+        const ta = document.getElementById("briefFallback");
+        ta.hidden = false;
+        ta.value = text;
+        ta.focus();
+        ta.select();
+        status.textContent = document.execCommand("copy")
+          ? "Copied. Paste it into a model."
+          : "Couldn't reach the clipboard. Copy it from the box.";
+      }
+    }
+
+    function logRun() {
+      const r = store.current;
+      if (!r || !actReady(r)) return;
+      r.ended = new Date().toISOString();
+      r.status = "pending";
+      if (r.sureAfter == null) r.sureAfter = r.body.sure;
+      delete r.step;
+      store.runs.unshift(r);
+      store.current = null;
+      ui.logged = r.id;
+      save(true);
+      render();
+      scrollTo({ top: 0 });
+    }
+
+    function exportJSON() {
+      const blob = new Blob(
+        [
+          JSON.stringify(
+            { v: 1, exported: new Date().toISOString(), runs: store.runs },
+            null,
+            2,
+          ),
+        ],
+        {
+          type: "application/json",
+        },
+      );
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `cognitive-scaffolding-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    async function importFile(file) {
+      if (!file) return;
+      let msg;
+      try {
+        const d = JSON.parse(await file.text());
+        const runs = Array.isArray(d) ? d : d.runs;
+        if (!Array.isArray(runs)) throw new Error("no runs");
+        const have = new Set(store.runs.map((r) => r.id));
+        let added = 0;
+        for (const r of runs) {
+          if (
+            r &&
+            typeof r.id === "string" &&
+            typeof r.loop === "string" &&
+            r.act &&
+            typeof r.act.will === "string" &&
+            !have.has(r.id)
+          ) {
+            store.runs.push(normalize(r));
+            have.add(r.id);
+            added++;
+          }
+        }
+        store.runs.sort((a, b) =>
+          String(b.ended || "").localeCompare(String(a.ended || "")),
+        );
+        save(true);
+        msg = `Imported ${added} run${added === 1 ? "" : "s"}.`;
+      } catch {
+        msg = "That file isn't a ledger export.";
+      }
+      render();
+      document.getElementById("ioStatus").textContent = msg;
+    }
+
+    const ACTIONS = {
+      step: (b) => setStep(Number(b.dataset.n)),
+      go: (b) => setStep(store.current.step + Number(b.dataset.d)),
+      discard: () => {
+        ui.confirm = "discard";
+        render();
+      },
+      "confirm-discard": () => {
+        store.current = null;
+        ui.confirm = null;
+        save(true);
+        render();
+      },
+      cancel: () => {
+        ui.confirm = null;
+        render();
+      },
+      pick: (b) => {
+        const r = store.current;
+        const id = b.dataset.id;
+        const i = r.tools.findIndex((p) => p.id === id);
+        if (i >= 0) r.tools.splice(i, 1);
+        else if (r.tools.length < MAX_TOOLS) r.tools.push({ id, answer: "" });
+        save(true);
+        render();
+        if (i < 0) document.getElementById("t-" + id)?.focus();
+      },
+      "lens-skip": () => {
+        store.current.lens = null;
+        setStep(STEPS.findIndex((s) => s.id === "act"));
+      },
+      "copy-brief": copyBrief,
+      log: logRun,
+      done: (b) => resolve(b.dataset.id, "done"),
+      drop: (b) => resolve(b.dataset.id, "dropped"),
+      undo: (b) => resolve(b.dataset.id, "pending"),
+      del: (b) => {
+        ui.confirm = "del:" + b.dataset.id;
+        render();
+      },
+      "confirm-del": (b) => {
+        store.runs = store.runs.filter((x) => x.id !== b.dataset.id);
+        ui.open.delete(b.dataset.id);
+        ui.confirm = null;
+        save(true);
+        render();
+      },
+      export: exportJSON,
+      import: () => document.getElementById("importFile").click(),
+      "dismiss-logged": () => {
+        ui.logged = null;
+        render();
+      },
+    };
+
+    app.addEventListener("click", (e) => {
+      const jump = e.target.closest("[data-jump]");
+      if (jump) {
+        e.preventDefault();
+        document.getElementById(jump.dataset.jump)?.scrollIntoView({
+          behavior: reduce ? "auto" : "smooth",
+          block: "start",
+        });
+        return;
+      }
+      const b = e.target.closest("[data-act]");
+      if (b && !b.disabled && ACTIONS[b.dataset.act]) ACTIONS[b.dataset.act](b);
+    });
+
+    app.addEventListener("input", (e) => {
+      const el = e.target;
+      if (el.id === "loopInput") {
+        document.getElementById("startBtn").disabled = !el.value.trim();
+        return;
+      }
+      const r = store.current;
+      if (!r || !el.dataset.bind) return;
+      const v = el.type === "range" ? Number(el.value) : el.value;
+      setPath(r, el.dataset.bind, v);
+      if (el.type === "range")
+        el.parentElement.querySelector("output").textContent = v;
+      save();
+      if ("recheck" in el.dataset) refreshGates();
+    });
+
+    app.addEventListener("change", (e) => {
+      const el = e.target;
+      if (el.id === "importFile") return importFile(el.files[0]);
+      if (el.name === "filter") {
+        ui.filter = el.value;
+        return render();
+      }
+      const r = store.current;
+      if (!r) return;
+      if (el.name === "lens") {
+        if (!r.lens || r.lens.id !== el.value)
+          r.lens = { id: el.value, answer: "" };
+        save(true);
+        render();
+        document.getElementById("lens-a")?.focus();
+        return;
+      }
+      if (el.dataset.toggle) {
+        const arr = getPath(r, el.dataset.toggle);
+        const i = arr.indexOf(el.value);
+        if (el.checked && i < 0) arr.push(el.value);
+        if (!el.checked && i >= 0) arr.splice(i, 1);
+      }
+      if (el.dataset.radio) setPath(r, el.dataset.radio, el.value);
+      if (el.dataset.bool) setPath(r, el.dataset.bool, el.checked);
+      save(true);
+      refreshGates();
+    });
+
+    app.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const loop = document.getElementById("loopInput").value.trim();
+      if (!loop) return;
+      const fence = Number(new FormData(e.target).get("fence")) || 15;
+      store.current = newRun(loop, fence);
+      ui.logged = null;
+      save(true);
+      render();
+      scrollTo({ top: 0 });
+    });
+
+    app.addEventListener("keydown", (e) => {
+      if (e.target.id === "loopInput" && e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        e.target.form.requestSubmit();
+      }
+    });
+
+    app.addEventListener(
+      "toggle",
+      (e) => {
+        const id = e.target.dataset && e.target.dataset.id;
+        if (!id || !e.target.classList.contains("entry")) return;
+        if (e.target.open) ui.open.add(id);
+        else ui.open.delete(id);
+      },
+      true,
+    );
+
+    addEventListener("hashchange", () => {
+      ui.confirm = null;
+      if (view() !== "run") ui.logged = null;
+      render();
+      if (!location.hash.includes("/")) scrollTo({ top: 0 });
+    });
+
+    render();
+  })();
+</script>
