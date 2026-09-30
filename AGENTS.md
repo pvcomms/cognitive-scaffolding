@@ -48,8 +48,8 @@ keep them identical so the page can move onto paramv.com unchanged.
 
 The page is **live and public** at paramv.com/systems/cognitive-scaffolding. `--site` writes the
 fragment the site's `build.py` wraps: absolute `/fonts/`, the `light:start…light:end` block
-dropped (the site is dark-only), `<!--SITE-NAV-->` replaced by "← systems", and the site's load
-gate copied out of `systems.html`. Shipping a change means running `./build.py --site ~/personal/site`,
+dropped (the site is dark-only), `<!--SITE-NAV-->` replaced by "← the site" (`/systems` was removed on 2026-09-30), and the
+site's load gate copied out of `work.html`. Shipping a change means running `./build.py --site ~/personal/site`,
 then in `~/personal/site` running `./build.py`, committing `cognitive-scaffolding.html`, and deploying
 per that repo's AGENTS.md. Content changes go public on deploy. Private push stays default-OK, but a
 redeploy of paramv.com is a public act.

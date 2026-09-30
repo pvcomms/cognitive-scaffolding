@@ -122,7 +122,7 @@ class Page(unittest.TestCase):
         self.assertNotIn('url("fonts/', out)
         self.assertIn('url("/fonts/', out)
         self.assertNotIn("prefers-color-scheme", out)
-        self.assertIn('<a class="crumb" href="/systems">', out)
+        self.assertIn('<a class="crumb" href="/">', out)
         first = out.index("</style>") + len("</style>")
         self.assertTrue(out[first:].lstrip().startswith("<style>\n  /* gate"))
         self.assertTrue(out.rstrip().endswith("</script>"))
