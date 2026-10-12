@@ -141,27 +141,11 @@ SITE_NOTE = """<!--
   paramv.com/systems/cognitive-scaffolding. GENERATED, do not edit here.
   source: ~/personal/tools/apps/cognitive-scaffolding (github.com/pvcomms/cognitive-scaffolding)
   rebuild: cd there && ./build.py --site ~/personal/site
-  the load-gate block is copied from work.html at build time, so it stays identical.
 -->
 """
-GATE_TOP = re.compile(
-    r'<style>\s*/\* gate .*?</style>\s*<script>\s*try \{ if \(!sessionStorage\.getItem\("pv-gate"\)\).*?</script>'
-    r'\s*<div class="gate" id="gate".*?</altcha-widget>.*?</div>\s*</div>',
-    flags=re.S,
-)
-GATE_BOTTOM = re.compile(
-    r'<script src="/vendor/altcha/altcha-obfuscation\.min\.js" defer></script>\s*'
-    r'<script src="/vendor/altcha/altcha\.min\.js" defer></script>\s*<script>\s*/\* gate: .*?</script>',
-    flags=re.S,
-)
-
-
-def site_fragment(fragment: str, data: dict, gate_source: str) -> str:
-    """The same page as a paramv.com fragment: absolute font paths, dark only, the site's
-    load gate, a way back to the site, and the toolbox inlined. paramv.com's build.py wraps it."""
-    top, bottom = GATE_TOP.search(gate_source), GATE_BOTTOM.search(gate_source)
-    if not (top and bottom):
-        raise ValueError("work.html: couldn't find the load-gate block to copy")
+def site_fragment(fragment: str, data: dict) -> str:
+    """The same page as a paramv.com fragment: absolute font paths, dark only, a way back to
+    the site, and the toolbox inlined. paramv.com's build.py wraps it; its gate is server-side."""
     m = re.match(r"^<title>.*?</title>\n", fragment)
     if not m:
         raise ValueError("index.html: line 1 must be the <title>")
@@ -171,10 +155,8 @@ def site_fragment(fragment: str, data: dict, gate_source: str) -> str:
         raise ValueError("index.html: no light:start/light:end block to drop")
     out = out.replace('url("fonts/', 'url("/fonts/')
     out = out.replace("<!--SITE-NAV-->", '<a class="crumb" href="/">← the site</a>')
-    first_style_end = out.index("</style>") + len("</style>")
-    out = out[:first_style_end] + "\n" + top.group(0) + out[first_style_end:]
     out = out.replace(PLACEHOLDER, payload(data))
-    return out.rstrip() + "\n" + bottom.group(0) + "\n"
+    return out.rstrip() + "\n"
 
 
 def main() -> int:
@@ -191,8 +173,7 @@ def main() -> int:
     print(f"wrote {PUB / 'index.html'}")
     if "--site" in sys.argv:
         site = pathlib.Path(sys.argv[sys.argv.index("--site") + 1]).expanduser()
-        gate_source = (site / "work.html").read_text(encoding="utf-8")
-        (site / SITE_PAGE).write_text(site_fragment(fragment, data, gate_source), encoding="utf-8")
+        (site / SITE_PAGE).write_text(site_fragment(fragment, data), encoding="utf-8")
         print(f"wrote {site / SITE_PAGE}")
     return 0
 
